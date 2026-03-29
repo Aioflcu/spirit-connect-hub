@@ -1,0 +1,270 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Music, BookOpen, Video, Trash2, Plus, ArrowLeft } from "lucide-react";
+
+const AdminPage = () => {
+  const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<"hymns" | "bible" | "live">("hymns");
+
+  // Hymns state
+  const [hymnTitle, setHymnTitle] = useState("");
+  const [hymnLyrics, setHymnLyrics] = useState("");
+  const [hymnAuthor, setHymnAuthor] = useState("");
+  const [hymnNumber, setHymnNumber] = useState("");
+  const [hymns, setHymns] = useState<any[]>([]);
+
+  // Bible state
+  const [verseRef, setVerseRef] = useState("");
+  const [verseText, setVerseText] = useState("");
+  const [reflection, setReflection] = useState("");
+  const [verseDate, setVerseDate] = useState(new Date().toISOString().split("T")[0]);
+  const [verses, setVerses] = useState<any[]>([]);
+
+  // Live state
+  const [liveTitle, setLiveTitle] = useState("");
+  const [liveUrl, setLiveUrl] = useState("");
+  const [streams, setStreams] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      navigate("/");
+    }
+  }, [user, isAdmin, loading, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    loadData();
+  }, [isAdmin]);
+
+  const loadData = async () => {
+    const [h, b, s] = await Promise.all([
+      supabase.from("hymns").select("*").order("hymn_number"),
+      supabase.from("daily_bible").select("*").order("date", { ascending: false }).limit(20),
+      supabase.from("livestreams").select("*").order("created_at", { ascending: false }),
+    ]);
+    setHymns(h.data || []);
+    setVerses(b.data || []);
+    setStreams(s.data || []);
+  };
+
+  const addHymn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("hymns").insert({
+      title: hymnTitle,
+      lyrics: hymnLyrics,
+      author: hymnAuthor || null,
+      hymn_number: hymnNumber ? parseInt(hymnNumber) : null,
+      created_by: user!.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Hymn added!");
+    setHymnTitle(""); setHymnLyrics(""); setHymnAuthor(""); setHymnNumber("");
+    loadData();
+  };
+
+  const deleteHymn = async (id: string) => {
+    await supabase.from("hymns").delete().eq("id", id);
+    toast.success("Hymn deleted");
+    loadData();
+  };
+
+  const addVerse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("daily_bible").insert({
+      verse_reference: verseRef,
+      verse_text: verseText,
+      reflection: reflection || null,
+      date: verseDate,
+      created_by: user!.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Bible verse added!");
+    setVerseRef(""); setVerseText(""); setReflection("");
+    loadData();
+  };
+
+  const deleteVerse = async (id: string) => {
+    await supabase.from("daily_bible").delete().eq("id", id);
+    toast.success("Verse deleted");
+    loadData();
+  };
+
+  const addStream = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("livestreams").insert({
+      title: liveTitle,
+      stream_url: liveUrl,
+      is_live: true,
+      created_by: user!.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Livestream link published! Users will see it.");
+    setLiveTitle(""); setLiveUrl("");
+    loadData();
+  };
+
+  const endStream = async (id: string) => {
+    await supabase.from("livestreams").update({ is_live: false }).eq("id", id);
+    toast.success("Stream ended");
+    loadData();
+  };
+
+  const deleteStream = async (id: string) => {
+    await supabase.from("livestreams").delete().eq("id", id);
+    toast.success("Stream deleted");
+    loadData();
+  };
+
+  if (loading || !isAdmin) return null;
+
+  const inputClass = "w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold font-sans text-sm";
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8">
+          {[
+            { key: "hymns" as const, icon: Music, label: "Hymns" },
+            { key: "bible" as const, icon: BookOpen, label: "Daily Bible" },
+            { key: "live" as const, icon: Video, label: "Livestream" },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-sans text-sm font-medium transition-colors ${
+                tab === t.key
+                  ? "bg-gold text-accent-foreground"
+                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <t.icon size={16} />
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Hymns Tab */}
+        {tab === "hymns" && (
+          <div className="space-y-6">
+            <form onSubmit={addHymn} className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Plus size={18} /> Add New Hymn
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <input value={hymnTitle} onChange={(e) => setHymnTitle(e.target.value)} required placeholder="Hymn Title" className={inputClass} />
+                <input value={hymnNumber} onChange={(e) => setHymnNumber(e.target.value)} placeholder="Hymn Number" type="number" className={inputClass} />
+              </div>
+              <input value={hymnAuthor} onChange={(e) => setHymnAuthor(e.target.value)} placeholder="Author (optional)" className={inputClass} />
+              <textarea value={hymnLyrics} onChange={(e) => setHymnLyrics(e.target.value)} required placeholder="Paste lyrics here..." rows={6} className={inputClass + " resize-y"} />
+              <button type="submit" className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm">
+                Add Hymn
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {hymns.map((h) => (
+                <div key={h.id} className="flex items-center justify-between bg-card rounded-lg border border-border p-4">
+                  <div>
+                    <span className="font-sans text-gold text-xs mr-2">#{h.hymn_number || "—"}</span>
+                    <span className="font-heading font-bold text-foreground text-sm">{h.title}</span>
+                  </div>
+                  <button onClick={() => deleteHymn(h.id)} className="text-destructive hover:text-destructive/80">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bible Tab */}
+        {tab === "bible" && (
+          <div className="space-y-6">
+            <form onSubmit={addVerse} className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Plus size={18} /> Add Daily Bible Verse
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <input value={verseRef} onChange={(e) => setVerseRef(e.target.value)} required placeholder="e.g. John 3:16" className={inputClass} />
+                <input type="date" value={verseDate} onChange={(e) => setVerseDate(e.target.value)} className={inputClass} />
+              </div>
+              <textarea value={verseText} onChange={(e) => setVerseText(e.target.value)} required placeholder="Verse text..." rows={3} className={inputClass + " resize-y"} />
+              <textarea value={reflection} onChange={(e) => setReflection(e.target.value)} placeholder="Reflection / devotional note (optional)" rows={3} className={inputClass + " resize-y"} />
+              <button type="submit" className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm">
+                Publish Verse
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {verses.map((v) => (
+                <div key={v.id} className="flex items-center justify-between bg-card rounded-lg border border-border p-4">
+                  <div>
+                    <span className="font-sans text-gold text-xs mr-2">{v.date}</span>
+                    <span className="font-heading font-bold text-foreground text-sm">{v.verse_reference}</span>
+                  </div>
+                  <button onClick={() => deleteVerse(v.id)} className="text-destructive hover:text-destructive/80">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Livestream Tab */}
+        {tab === "live" && (
+          <div className="space-y-6">
+            <form onSubmit={addStream} className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Plus size={18} /> Publish Livestream Link
+              </h2>
+              <input value={liveTitle} onChange={(e) => setLiveTitle(e.target.value)} required placeholder="Stream title e.g. Sunday Service" className={inputClass} />
+              <input value={liveUrl} onChange={(e) => setLiveUrl(e.target.value)} required placeholder="YouTube/Facebook Live URL" type="url" className={inputClass} />
+              <button type="submit" className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm">
+                Go Live
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {streams.map((s) => (
+                <div key={s.id} className="flex items-center justify-between bg-card rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2">
+                    {s.is_live && <span className="w-2 h-2 bg-destructive rounded-full animate-pulse" />}
+                    <span className="font-heading font-bold text-foreground text-sm">{s.title}</span>
+                    <span className="text-muted-foreground text-xs font-sans">
+                      {s.is_live ? "LIVE" : "Ended"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {s.is_live && (
+                      <button onClick={() => endStream(s.id)} className="text-xs font-sans px-3 py-1 rounded bg-muted text-muted-foreground hover:text-foreground">
+                        End
+                      </button>
+                    )}
+                    <button onClick={() => deleteStream(s.id)} className="text-destructive hover:text-destructive/80">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminPage;
