@@ -7,11 +7,13 @@ import MinistriesSection from "@/components/MinistriesSection";
 import EventsSection from "@/components/EventsSection";
 import GivingSection from "@/components/GivingSection";
 import FooterSection from "@/components/FooterSection";
+import DailyBibleAndLive from "@/components/DailyBibleAndLive";
 
 const Index = () => (
   <>
     <Navbar />
     <HeroSection />
+    <DailyBibleAndLive />
     <AboutSection />
     <LeadershipSection />
     <ServicesSection />
