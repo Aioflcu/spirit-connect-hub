@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, googleProvider } from "@/integrations/firebase/client";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Cross } from "lucide-react";
@@ -14,27 +15,27 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       toast.success("Welcome back!");
       navigate("/");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-    setGoogleLoading(false);
-    if (error) {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success("Welcome back!");
+      navigate("/");
+    } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 

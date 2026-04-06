@@ -1,9 +1,8 @@
 import { useState, useEffect, createContext, useContext } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Session, User } from "@supabase/supabase-js";
+import { auth } from "@/integrations/firebase/client";
+import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 
 interface AuthContextType {
-  session: Session | null;
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
@@ -11,7 +10,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  session: null,
   user: null,
   isAdmin: false,
   loading: true,
@@ -21,53 +19,37 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+    // TODO: Implement admin role checking with Firestore or other method
+    // For now, checking if user email is in a hardcoded list
+    const adminEmails = ['admin@jdm.org', 'kd1dave123@gmail.com']; // Add admin emails here
+    setIsAdmin(adminEmails.includes(user?.email || ''));
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => checkAdmin(session.user.id), 0);
-        } else {
-          setIsAdmin(false);
-        }
-        setLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdmin(session.user.id);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setUser(user);
+      if (user) {
+        checkAdmin(user.uid);
+      } else {
+        setIsAdmin(false);
       }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isAdmin, loading, signOut }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

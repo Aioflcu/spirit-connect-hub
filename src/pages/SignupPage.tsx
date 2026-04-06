@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, googleProvider } from "@/integrations/firebase/client";
+import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Cross } from "lucide-react";
@@ -19,34 +20,32 @@ const SignupPage = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { display_name: displayName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    setLoading(false);
-    if (error) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName && userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: displayName,
+        });
+      }
+      toast.success("Account created successfully!");
+      navigate("/");
+    } catch (error: any) {
       toast.error(error.message);
-    } else {
-      toast.success("Check your email to verify your account!");
-      navigate("/login");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-    setGoogleLoading(false);
-    if (error) {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success("Account created successfully!");
+      navigate("/");
+    } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
