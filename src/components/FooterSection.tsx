@@ -1,9 +1,7 @@
 import { MapPin, Phone, Mail, Cross } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 
 const FooterSection = () => {
-  const { isAdmin } = useAuth();
 
   return (
     <footer id="contact" className="py-16 bg-navy-dark border-t border-gold/10">
@@ -70,15 +68,13 @@ const FooterSection = () => {
             © {new Date().getFullYear()} Jesus Discipleship Ministry. All rights reserved.
           </p>
           {/* Admin access button - small and subtle */}
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded"
-              title="Admin Panel"
-            >
-              Admin
-            </Link>
-          )}
+          <Link
+            to="/admin"
+            className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded"
+            title="Admin Panel"
+          >
+            Admin
+          </Link>
         </div>
       </div>
     </footer>
