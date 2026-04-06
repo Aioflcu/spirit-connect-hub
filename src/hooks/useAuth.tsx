@@ -23,17 +23,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  console.log('AuthProvider: Initializing...');
+
   const checkAdmin = async (userId: string) => {
-    // TODO: Implement admin role checking with Firestore or other method
-    // For now, checking if user email is in a hardcoded list
-    const adminEmails = ['admin@jdm.org', 'kd1dave123@gmail.com']; // Add admin emails here
-    const isUserAdmin = adminEmails.includes(user?.email || '');
-    console.log('Admin check:', { email: user?.email, isUserAdmin });
-    setIsAdmin(isUserAdmin);
+    try {
+      // TODO: Implement admin role checking with Firestore or other method
+      // For now, checking if user email is in a hardcoded list
+      const adminEmails = ['admin@jdm.org', 'kd1dave123@gmail.com']; // Add admin emails here
+      const isUserAdmin = adminEmails.includes(user?.email || '');
+      console.log('Admin check:', { email: user?.email, isUserAdmin });
+      setIsAdmin(isUserAdmin);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
   };
 
   useEffect(() => {
+    console.log('AuthProvider: Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('AuthProvider: Auth state changed', { user: user?.email, uid: user?.uid });
       setUser(user);
       if (user) {
         checkAdmin(user.uid);
@@ -42,6 +51,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       setLoading(false);
     });
+
+    return () => unsubscribe();
+  }, []);
 
     return () => unsubscribe();
   }, []);
