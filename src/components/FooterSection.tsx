@@ -69,13 +69,14 @@ const FooterSection = () => {
           <p className="font-sans text-primary-foreground/40 text-xs">
             © {new Date().getFullYear()} Jesus Discipleship Ministry. All rights reserved.
           </p>
-          {/* Hidden admin button - barely visible */}
+          {/* Admin access button - small and subtle */}
           {isAdmin && (
             <Link
               to="/admin"
-              className="inline-block mt-2 text-primary-foreground/5 hover:text-primary-foreground/20 transition-colors text-[8px] font-sans"
+              className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded"
+              title="Admin Panel"
             >
-              ●
+              Admin
             </Link>
           )}
         </div>
