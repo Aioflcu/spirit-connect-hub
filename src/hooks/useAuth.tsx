@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('Admin check:', { email: user?.email, isUserAdmin });
     setIsAdmin(isUserAdmin);
   };
-  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
