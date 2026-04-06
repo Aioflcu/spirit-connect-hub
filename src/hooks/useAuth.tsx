@@ -27,7 +27,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // TODO: Implement admin role checking with Firestore or other method
     // For now, checking if user email is in a hardcoded list
     const adminEmails = ['admin@jdm.org', 'kd1dave123@gmail.com']; // Add admin emails here
-    setIsAdmin(adminEmails.includes(user?.email || ''));
+    const isUserAdmin = adminEmails.includes(user?.email || '');
+    console.log('Admin check:', { email: user?.email, isUserAdmin });
+    setIsAdmin(isUserAdmin);
+  };
   };
 
   useEffect(() => {

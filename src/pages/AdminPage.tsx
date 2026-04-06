@@ -10,6 +10,8 @@ const AdminPage = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"hymns" | "bible" | "live">("hymns");
 
+  console.log('AdminPage Debug:', { user: user?.email, isAdmin, loading });
+
   // Hymns state
   const [hymnTitle, setHymnTitle] = useState("");
   const [hymnLyrics, setHymnLyrics] = useState("");
@@ -30,8 +32,19 @@ const AdminPage = () => {
   const [streams, setStreams] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate("/");
+    if (!loading) {
+      console.log('User:', user);
+      console.log('Is Admin:', isAdmin);
+      console.log('Loading:', loading);
+      // Temporarily allow all logged-in users to access admin for debugging
+      if (!user) {
+        console.log('No user found, redirecting to home');
+        navigate("/");
+      }
+      // Remove admin check temporarily
+      // if (!user || !isAdmin) {
+      //   navigate("/");
+      // }
     }
   }, [user, isAdmin, loading, navigate]);
 
