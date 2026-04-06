@@ -1,7 +1,8 @@
 import { MapPin, Phone, Mail, Cross } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const FooterSection = () => {
+  const navigate = useNavigate();
 
   return (
     <footer id="contact" className="py-16 bg-navy-dark border-t border-gold/10">
@@ -68,13 +69,13 @@ const FooterSection = () => {
             © {new Date().getFullYear()} Jesus Discipleship Ministry. All rights reserved.
           </p>
           {/* Admin access button - small and subtle */}
-          <Link
-            to="/admin"
-            className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded"
+          <button
+            onClick={() => navigate('/admin')}
+            className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded cursor-pointer"
             title="Admin Panel"
           >
             Admin
-          </Link>
+          </button>
         </div>
       </div>
     </footer>
