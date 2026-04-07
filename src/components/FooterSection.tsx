@@ -1,14 +1,11 @@
 import { MapPin, Phone, Mail, Cross } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const FooterSection = () => {
-  const navigate = useNavigate();
-
   return (
     <footer id="contact" className="py-16 bg-navy-dark border-t border-gold/10">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-10 mb-12">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Cross className="text-gold" size={24} />
@@ -19,7 +16,6 @@ const FooterSection = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="font-heading font-bold text-primary-foreground mb-4">Quick Links</h4>
             <ul className="space-y-2">
@@ -38,7 +34,6 @@ const FooterSection = () => {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="font-heading font-bold text-primary-foreground mb-4">Contact Us</h4>
             <div className="space-y-3">
@@ -68,14 +63,13 @@ const FooterSection = () => {
           <p className="font-sans text-primary-foreground/40 text-xs">
             © {new Date().getFullYear()} Jesus Discipleship Ministry. All rights reserved.
           </p>
-          {/* Admin access button - small and subtle */}
-          <button
-            onClick={() => navigate('/admin')}
-            className="inline-block mt-3 px-2 py-1 text-primary-foreground/40 hover:text-gold transition-colors text-xs font-sans border border-gold/20 hover:border-gold/40 rounded cursor-pointer"
-            title="Admin Panel"
+          <Link
+            to="/admin"
+            className="inline-flex items-center mt-3 px-3 py-1.5 text-xs font-sans text-primary-foreground/70 hover:text-gold transition-colors border border-gold/20 hover:border-gold/40 rounded"
+            title="Admin Page"
           >
-            Admin
-          </button>
+            Admin Page
+          </Link>
         </div>
       </div>
     </footer>
