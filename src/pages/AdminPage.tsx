@@ -1,57 +1,42 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Music, BookOpen, Video, Trash2, Plus, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminPage = () => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<"hymns" | "bible" | "live">("hymns");
 
-  console.log('AdminPage Debug:', { user: user?.email, isAdmin, loading });
-
-  // Hymns state
   const [hymnTitle, setHymnTitle] = useState("");
   const [hymnLyrics, setHymnLyrics] = useState("");
   const [hymnAuthor, setHymnAuthor] = useState("");
   const [hymnNumber, setHymnNumber] = useState("");
   const [hymns, setHymns] = useState<any[]>([]);
 
-  // Bible state
   const [verseRef, setVerseRef] = useState("");
   const [verseText, setVerseText] = useState("");
   const [reflection, setReflection] = useState("");
   const [verseDate, setVerseDate] = useState(new Date().toISOString().split("T")[0]);
   const [verses, setVerses] = useState<any[]>([]);
 
-  // Live state
   const [liveTitle, setLiveTitle] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
   const [streams, setStreams] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!loading) {
-      console.log('User:', user);
-      console.log('Is Admin:', isAdmin);
-      console.log('Loading:', loading);
-      // Temporarily allow all logged-in users to access admin for debugging
-      if (!user) {
-        console.log('No user found, redirecting to home');
-        navigate("/");
-      }
-      // Remove admin check temporarily
-      // if (!user || !isAdmin) {
-      //   navigate("/");
-      // }
+    if (!loading && !user) {
+      navigate("/login?redirect=/admin", { replace: true });
     }
-  }, [user, isAdmin, loading, navigate]);
+  }, [loading, navigate, user]);
 
   useEffect(() => {
-    if (!isAdmin) return;
-    loadData();
-  }, [isAdmin]);
+    if (user) {
+      void loadData();
+    }
+  }, [user]);
 
   const loadData = async () => {
     const [h, b, s] = await Promise.all([
@@ -59,6 +44,7 @@ const AdminPage = () => {
       supabase.from("daily_bible").select("*").order("date", { ascending: false }).limit(20),
       supabase.from("livestreams").select("*").order("created_at", { ascending: false }),
     ]);
+
     setHymns(h.data || []);
     setVerses(b.data || []);
     setStreams(s.data || []);
@@ -66,88 +52,139 @@ const AdminPage = () => {
 
   const addHymn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     const { error } = await supabase.from("hymns").insert({
       title: hymnTitle,
       lyrics: hymnLyrics,
       author: hymnAuthor || null,
-      hymn_number: hymnNumber ? parseInt(hymnNumber) : null,
-      created_by: user!.id,
+      hymn_number: hymnNumber ? Number(hymnNumber) : null,
+      created_by: user.id,
     });
-    if (error) { toast.error(error.message); return; }
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
     toast.success("Hymn added!");
-    setHymnTitle(""); setHymnLyrics(""); setHymnAuthor(""); setHymnNumber("");
-    loadData();
+    setHymnTitle("");
+    setHymnLyrics("");
+    setHymnAuthor("");
+    setHymnNumber("");
+    void loadData();
   };
 
   const deleteHymn = async (id: string) => {
-    await supabase.from("hymns").delete().eq("id", id);
-    toast.success("Hymn deleted");
-    loadData();
+    const { error } = await supabase.from("hymns").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Hymn deleted.");
+    void loadData();
   };
 
   const addVerse = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     const { error } = await supabase.from("daily_bible").insert({
       verse_reference: verseRef,
       verse_text: verseText,
       reflection: reflection || null,
       date: verseDate,
-      created_by: user!.id,
+      created_by: user.id,
     });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Bible verse added!");
-    setVerseRef(""); setVerseText(""); setReflection("");
-    loadData();
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Daily Bible entry published!");
+    setVerseRef("");
+    setVerseText("");
+    setReflection("");
+    void loadData();
   };
 
   const deleteVerse = async (id: string) => {
-    await supabase.from("daily_bible").delete().eq("id", id);
-    toast.success("Verse deleted");
-    loadData();
+    const { error } = await supabase.from("daily_bible").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Daily Bible entry deleted.");
+    void loadData();
   };
 
   const addStream = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     const { error } = await supabase.from("livestreams").insert({
       title: liveTitle,
       stream_url: liveUrl,
       is_live: true,
-      created_by: user!.id,
+      created_by: user.id,
     });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Livestream link published! Users will see it.");
-    setLiveTitle(""); setLiveUrl("");
-    loadData();
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Livestream link published!");
+    setLiveTitle("");
+    setLiveUrl("");
+    void loadData();
   };
 
   const endStream = async (id: string) => {
-    await supabase.from("livestreams").update({ is_live: false }).eq("id", id);
-    toast.success("Stream ended");
-    loadData();
+    const { error } = await supabase.from("livestreams").update({ is_live: false }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Livestream ended.");
+    void loadData();
   };
 
   const deleteStream = async (id: string) => {
-    await supabase.from("livestreams").delete().eq("id", id);
-    toast.success("Stream deleted");
-    loadData();
+    const { error } = await supabase.from("livestreams").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Livestream deleted.");
+    void loadData();
   };
 
-  if (loading || !isAdmin) return null;
+  if (loading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold font-sans text-sm";
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
+        <div className="flex items-center gap-3 mb-3">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground" aria-label="Back to home">
             <ArrowLeft size={20} />
           </button>
           <h1 className="font-heading text-2xl font-bold text-foreground">Admin Dashboard</h1>
         </div>
+        <p className="text-muted-foreground font-sans text-sm mb-8">
+          Manage hymns, daily Bible messages, and livestream links from one place.
+        </p>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-8 flex-wrap">
           {[
             { key: "hymns" as const, icon: Music, label: "Hymns" },
             { key: "bible" as const, icon: BookOpen, label: "Daily Bible" },
@@ -168,7 +205,6 @@ const AdminPage = () => {
           ))}
         </div>
 
-        {/* Hymns Tab */}
         {tab === "hymns" && (
           <div className="space-y-6">
             <form onSubmit={addHymn} className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -193,7 +229,7 @@ const AdminPage = () => {
                     <span className="font-sans text-gold text-xs mr-2">#{h.hymn_number || "—"}</span>
                     <span className="font-heading font-bold text-foreground text-sm">{h.title}</span>
                   </div>
-                  <button onClick={() => deleteHymn(h.id)} className="text-destructive hover:text-destructive/80">
+                  <button onClick={() => deleteHymn(h.id)} className="text-destructive hover:text-destructive/80" aria-label={`Delete ${h.title}`}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -202,7 +238,6 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* Bible Tab */}
         {tab === "bible" && (
           <div className="space-y-6">
             <form onSubmit={addVerse} className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -227,7 +262,7 @@ const AdminPage = () => {
                     <span className="font-sans text-gold text-xs mr-2">{v.date}</span>
                     <span className="font-heading font-bold text-foreground text-sm">{v.verse_reference}</span>
                   </div>
-                  <button onClick={() => deleteVerse(v.id)} className="text-destructive hover:text-destructive/80">
+                  <button onClick={() => deleteVerse(v.id)} className="text-destructive hover:text-destructive/80" aria-label={`Delete ${v.verse_reference}`}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -236,7 +271,6 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* Livestream Tab */}
         {tab === "live" && (
           <div className="space-y-6">
             <form onSubmit={addStream} className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -256,9 +290,7 @@ const AdminPage = () => {
                   <div className="flex items-center gap-2">
                     {s.is_live && <span className="w-2 h-2 bg-destructive rounded-full animate-pulse" />}
                     <span className="font-heading font-bold text-foreground text-sm">{s.title}</span>
-                    <span className="text-muted-foreground text-xs font-sans">
-                      {s.is_live ? "LIVE" : "Ended"}
-                    </span>
+                    <span className="text-muted-foreground text-xs font-sans">{s.is_live ? "LIVE" : "Ended"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {s.is_live && (
@@ -266,7 +298,7 @@ const AdminPage = () => {
                         End
                       </button>
                     )}
-                    <button onClick={() => deleteStream(s.id)} className="text-destructive hover:text-destructive/80">
+                    <button onClick={() => deleteStream(s.id)} className="text-destructive hover:text-destructive/80" aria-label={`Delete ${s.title}`}>
                       <Trash2 size={16} />
                     </button>
                   </div>
