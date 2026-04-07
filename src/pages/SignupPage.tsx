@@ -96,7 +96,7 @@ const SignupPage = () => {
               onChange={(e) => setDisplayName(e.target.value)}
               required
               className="w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans"
-              placeholder="John Doe"
+              placeholder="Ayodele Olusola"
             />
           </div>
           <div>
@@ -119,7 +119,7 @@ const SignupPage = () => {
               required
               minLength={6}
               className="w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans"
-              placeholder="••••••••"
+              placeholder="at least 6 characters"
             />
           </div>
           <button

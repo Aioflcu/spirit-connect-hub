@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
     return () => unsubscribe();
-  }, []);
+  }, [];
 
   const signOut = async () => {
     await firebaseSignOut(auth);
