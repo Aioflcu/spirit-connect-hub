@@ -55,6 +55,24 @@ const SignupPage = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}${redirectTo}`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Unable to sign up with Google.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-navy-gradient flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -113,6 +131,15 @@ const SignupPage = () => {
             className="w-full py-3 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Sign Up"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="w-full py-3 rounded-lg bg-white text-slate-900 font-sans font-semibold border border-slate-200 hover:bg-slate-100 transition-colors disabled:opacity-50"
+          >
+            {loading ? "Redirecting..." : "Continue with Google"}
           </button>
 
           <p className="text-center text-primary-foreground/60 text-sm font-sans">

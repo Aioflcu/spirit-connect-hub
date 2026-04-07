@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
 import HymnsPage from "./pages/HymnsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import MessagesPage from "./pages/MessagesPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,8 @@ const App = () => {
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/hymns" element={<HymnsPage />} />
                 <Route path="/admin" element={<AdminPage />} />
-                <Route path="*" element={<NotFound />} />
+                <Route path="/messages" element={<MessagesPage />} />
+                <Route path="*" element={<NotFound />} /> 
               </Routes>
             </AuthProvider>
           </BrowserRouter>

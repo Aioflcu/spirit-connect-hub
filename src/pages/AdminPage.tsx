@@ -1,14 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Music, BookOpen, Video, Trash2, Plus, ArrowLeft } from "lucide-react";
+import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useGalleryUpload, useMessagesUpload } from "@/hooks/useGallery";
 
 const AdminPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"hymns" | "bible" | "live">("hymns");
+  const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages">("hymns");
+
+  const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
+  const [galleryCaption, setGalleryCaption] = useState("");
+  const [galleryFile, setGalleryFile] = useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+
+  const { uploadMessage, uploading: messagesUploading } = useMessagesUpload(); // Note: hook expects FormData, will handle
+  const [messagesTitle, setMessagesTitle] = useState("");
+  const [messagesTranscript, setMessagesTranscript] = useState("");
+  const [messagesAudio, setMessagesAudio] = useState<File | null>(null);
+  const [messagesImage, setMessagesImage] = useState<File | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
 
   const [hymnTitle, setHymnTitle] = useState("");
   const [hymnLyrics, setHymnLyrics] = useState("");
@@ -189,6 +202,8 @@ const AdminPage = () => {
             { key: "hymns" as const, icon: Music, label: "Hymns" },
             { key: "bible" as const, icon: BookOpen, label: "Daily Bible" },
             { key: "live" as const, icon: Video, label: "Livestream" },
+            { key: "gallery" as const, icon: Image, label: "Gallery" },
+            { key: "messages" as const, icon: MessageCircle, label: "Messages" },
           ].map((t) => (
             <button
               key={t.key}
@@ -302,6 +317,128 @@ const AdminPage = () => {
                       <Trash2 size={16} />
                     </button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "gallery" && (
+          <div className="space-y-6">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!galleryFile) return toast.error('Please select an image');
+              const success = await uploadImage(galleryFile, galleryCaption);
+              if (success) {
+                setGalleryCaption('');
+                setGalleryFile(null);
+                // Reload list
+                const { data } = await supabase.from('galleries').select('*').order('created_at', { ascending: false });
+                setGalleryImages(data || []);
+              }
+            }} className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Plus size={18} /> Add Gallery Image
+              </h2>
+              <input 
+                value={galleryCaption} 
+                onChange={(e) => setGalleryCaption(e.target.value)} 
+                placeholder="Image caption (optional)" 
+                className={inputClass} 
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setGalleryFile(e.target.files ? e.target.files[0] : null)}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light border border-border rounded-lg p-4"
+              />
+              <button type="submit" disabled={galleryUploading} className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm disabled:opacity-50">
+                {galleryUploading ? 'Uploading...' : 'Upload Image'}
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {galleryImages.map((img) => (
+                <div key={img.id} className="flex items-center justify-between bg-card rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-3">
+                    <img src={img.image_url} alt={img.caption} className="w-12 h-12 object-cover rounded" />
+                    <div>
+                      <span className="font-heading font-bold text-sm">{img.caption || 'No caption'}</span>
+                    </div>
+                  </div>
+                  <button className="text-destructive hover:text-destructive/80" aria-label="Delete image">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "messages" && (
+          <div className="space-y-6">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget as HTMLFormElement);
+              const success = await uploadMessage(formData);
+              if (success) {
+                setMessagesTitle('');
+                setMessagesTranscript('');
+                (e.currentTarget as any).reset();
+                // Reload list
+                const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
+                setMessages(data || []);
+              }
+            }} className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Plus size={18} /> Add New Message
+              </h2>
+              <input 
+                name="title"
+                value={messagesTitle}
+                onChange={(e) => setMessagesTitle(e.target.value)}
+                required 
+                placeholder="Message title" 
+                className={inputClass} 
+              />
+              <textarea 
+                name="transcript"
+                value={messagesTranscript}
+                onChange={(e) => setMessagesTranscript(e.target.value)}
+                placeholder="Transcript / notes (optional)" 
+                rows={4}
+                className={inputClass + " resize-y"}
+              />
+              <input
+                name="audio"
+                type="file"
+                accept="audio/*"
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light border border-border rounded-lg p-4"
+              />
+              <input
+                name="image"
+                type="file"
+                accept="image/*"
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light border border-border rounded-lg p-4"
+              />
+              <button type="submit" disabled={messagesUploading} className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm disabled:opacity-50">
+                {messagesUploading ? 'Publishing...' : 'Publish Message'}
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {messages.map((m) => (
+                <div key={m.id} className="flex items-center justify-between bg-card rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-3">
+                    {m.image_url && <img src={m.image_url} alt={m.title} className="w-12 h-12 object-cover rounded" />}
+                    <div>
+                      <span className="font-heading font-bold text-sm">{m.title}</span>
+                      {m.audio_url && <span className="text-xs text-muted-foreground ml-2">🎵 Audio</span>}
+                    </div>
+                  </div>
+                  <button className="text-destructive hover:text-destructive/80" aria-label="Delete message">
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               ))}
             </div>

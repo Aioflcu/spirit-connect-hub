@@ -8,6 +8,7 @@ import EventsSection from "@/components/EventsSection";
 import GivingSection from "@/components/GivingSection";
 import FooterSection from "@/components/FooterSection";
 import DailyBibleAndLive from "@/components/DailyBibleAndLive";
+import { GallerySection } from "@/components/GallerySection";
 
 const Index = () => (
   <>
@@ -19,6 +20,7 @@ const Index = () => (
     <ServicesSection />
     <MinistriesSection />
     <EventsSection />
+    <GallerySection />
     <GivingSection />
     <FooterSection />
   </>
