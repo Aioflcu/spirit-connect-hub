@@ -26,13 +26,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let mounted = true;
 
     const syncSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: urlData } = await supabase.auth.getSessionFromUrl();
+      if (mounted && urlData?.session) {
+        setUser(urlData.session.user);
+        setLoading(false);
+        return;
+      }
 
-      if (!mounted) return;
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     };
 
     const {
