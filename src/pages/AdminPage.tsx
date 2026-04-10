@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft } from "lucide-react";
+import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft, Lock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGalleryUpload, useMessagesUpload } from "@/hooks/useGallery";
 
+
 const AdminPage = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages">("hymns");
+  const [showAdminPrompt, setShowAdminPrompt] = useState(true);
+  const [adminPassword, setAdminPassword] = useState("");
+  const adminPasswordEnv = import.meta.env.VITE_ADMIN_PASSWORD as string;
 
   const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
+
   const [galleryCaption, setGalleryCaption] = useState("");
   const [galleryFile, setGalleryFile] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
@@ -42,8 +50,23 @@ const AdminPage = () => {
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login?redirect=/admin", { replace: true });
+      return;
     }
-  }, [loading, navigate, user]);
+    if (isAdmin) {
+      setShowAdminPrompt(false);
+    }
+  }, [loading, navigate, user, isAdmin]);
+
+  const handleAdminVerify = () => {
+    if (adminPassword === adminPasswordEnv) {
+      setShowAdminPrompt(false);
+      toast.success("Admin access granted!");
+    } else {
+      toast.error("Incorrect admin password.");
+      setAdminPassword("");
+    }
+  };
+
 
   useEffect(() => {
     if (user) {
@@ -181,6 +204,44 @@ const AdminPage = () => {
   if (!user) {
     return null;
   }
+
+  if (showAdminPrompt && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Dialog open={showAdminPrompt} onOpenChange={setShowAdminPrompt}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Admin Password Required
+              </DialogTitle>
+              <DialogDescription>
+                Enter the admin password to access the dashboard.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Input
+                type="password"
+                placeholder="Admin password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => navigate("/")}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleAdminVerify}>
+                Verify
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold font-sans text-sm";
 

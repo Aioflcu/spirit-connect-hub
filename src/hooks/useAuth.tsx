@@ -20,6 +20,8 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -61,11 +63,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setIsAdmin(false);
   };
 
+  const checkAdmin = async (currentUser: User) => {
+    // Check user_metadata or email for admin
+    if (currentUser.user_metadata?.isAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+    if (currentUser.email === 'admin@jdm.org') { // Fallback
+      setIsAdmin(true);
+      return;
+    }
+    setIsAdmin(false);
+  };
+
+  useEffect(() => {
+    if (user) {
+      void checkAdmin(user);
+    }
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, isAdmin: Boolean(user), loading, signOut }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
