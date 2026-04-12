@@ -16,7 +16,7 @@ const AdminPage = () => {
   const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages">("hymns");
   const [showAdminPrompt, setShowAdminPrompt] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
-  const adminPasswordEnv = import.meta.env.VITE_ADMIN_PASSWORD as string;
+  const adminPasswordEnv = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "admin123";
 
   const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
 
