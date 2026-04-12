@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Cross } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -41,14 +42,15 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}${redirectTo}`,
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+
+      toast.success("Welcome back!");
+      navigate(redirectTo);
     } catch (error: any) {
       toast.error(error.message || "Unable to sign in with Google.");
       setLoading(false);
