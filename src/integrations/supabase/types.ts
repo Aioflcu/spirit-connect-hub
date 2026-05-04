@@ -125,6 +125,36 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          title: string
+          transcript: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          title: string
+          transcript?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string
+          transcript?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
