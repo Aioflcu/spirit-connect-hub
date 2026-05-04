@@ -44,6 +44,27 @@ export type Database = {
         }
         Relationships: []
       }
+      galleries: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+        }
+        Relationships: []
+      }
       hymns: {
         Row: {
           author: string | null
