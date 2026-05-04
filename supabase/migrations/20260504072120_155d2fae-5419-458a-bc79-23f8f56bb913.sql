@@ -1,0 +1,1 @@
+DELETE FROM public.daily_bible WHERE date = CURRENT_DATE;
