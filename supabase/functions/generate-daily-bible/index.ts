@@ -37,6 +37,15 @@ serve(async (req) => {
       });
     }
 
+    // Fetch recent verses to avoid repeats
+    const { data: recentVerses } = await supabase
+      .from("daily_bible")
+      .select("verse_reference")
+      .order("date", { ascending: false })
+      .limit(30);
+
+    const recentList = (recentVerses || []).map((v: any) => v.verse_reference).join(", ");
+
     // Generate a Bible verse using Lovable AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -55,11 +64,13 @@ You MUST respond with valid JSON in this exact format (no markdown, no code bloc
 {"verse_reference": "Book Chapter:Verse", "verse_text": "The exact Bible verse text", "reflection": "A short 2-3 sentence spiritual reflection on the verse"}
 
 Rules:
-- Pick a different verse each time - vary across Old and New Testament
+- You MUST pick a DIFFERENT verse from these recently used ones: ${recentList}
+- Vary widely across Old Testament, New Testament, Psalms, Proverbs, Prophets, Gospels, Epistles
 - Use the King James Version (KJV) or New International Version (NIV) text
 - The reflection should be encouraging, uplifting, and applicable to daily life
 - Keep the reflection under 100 words
-- Today's date is ${today} - consider the season/time of year for relevance`,
+- Today's date is ${today} - consider the season/time of year for relevance
+- Be creative and explore lesser-known but powerful verses too`,
           },
           {
             role: "user",
