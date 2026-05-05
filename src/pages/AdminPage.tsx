@@ -274,6 +274,7 @@ const AdminPage = () => {
             { key: "live" as const, icon: Video, label: "Livestream" },
             { key: "gallery" as const, icon: Image, label: "Gallery" },
             { key: "messages" as const, icon: MessageCircle, label: "Messages" },
+            { key: "settings" as const, icon: Settings, label: "Settings" },
           ].map((t) => (
             <button
               key={t.key}
