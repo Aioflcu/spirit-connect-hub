@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Cross, LogIn, LogOut } from "lucide-react";
+import { Menu, X, Cross, LogIn, LogOut, UserCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useChurchLogo } from "@/hooks/useChurchLogo";
