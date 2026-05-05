@@ -1,24 +1,33 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft, Lock } from "lucide-react";
+import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft, Lock, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGalleryUpload, useMessagesUpload } from "@/hooks/useGallery";
+import { useChurchLogo, useUploadChurchLogo } from "@/hooks/useChurchLogo";
 
 
 const AdminPage = () => {
   const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages">("hymns");
+  const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages" | "settings">("hymns");
   const [showAdminPrompt, setShowAdminPrompt] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
   const adminPasswordEnv = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "jdm1999";
 
   const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
+  const { logoUrl } = useChurchLogo();
+  const { uploadLogo, uploading: logoUploading } = useUploadChurchLogo();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentLogoUrl(logoUrl);
+  }, [logoUrl]);
 
   const [galleryCaption, setGalleryCaption] = useState("");
   const [galleryFile, setGalleryFile] = useState<File | null>(null);
@@ -265,6 +274,7 @@ const AdminPage = () => {
             { key: "live" as const, icon: Video, label: "Livestream" },
             { key: "gallery" as const, icon: Image, label: "Gallery" },
             { key: "messages" as const, icon: MessageCircle, label: "Messages" },
+            { key: "settings" as const, icon: Settings, label: "Settings" },
           ].map((t) => (
             <button
               key={t.key}
@@ -502,6 +512,49 @@ const AdminPage = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "settings" && (
+          <div className="space-y-6">
+            <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+              <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
+                <Settings size={18} /> Church Logo
+              </h2>
+              <p className="text-muted-foreground text-sm font-sans">
+                Upload the church logo. It will appear in the navigation bar and footer across the entire site.
+              </p>
+              {currentLogoUrl && (
+                <div className="flex items-center gap-4">
+                  <img src={currentLogoUrl} alt="Current Logo" className="h-16 w-16 object-contain rounded border border-border" />
+                  <span className="text-sm text-muted-foreground font-sans">Current logo</span>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files ? e.target.files[0] : null)}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-accent-foreground hover:file:bg-gold-light block w-full text-sm text-muted-foreground border border-border rounded-lg p-4"
+              />
+              <button
+                type="button"
+                disabled={!logoFile || logoUploading}
+                onClick={async () => {
+                  if (!logoFile) return;
+                  const url = await uploadLogo(logoFile);
+                  if (url) {
+                    setCurrentLogoUrl(url);
+                    setLogoFile(null);
+                    toast.success("Church logo updated!");
+                  } else {
+                    toast.error("Failed to upload logo.");
+                  }
+                }}
+                className="px-6 py-2.5 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors text-sm disabled:opacity-50"
+              >
+                {logoUploading ? "Uploading..." : "Upload Logo"}
+              </button>
             </div>
           </div>
         )}

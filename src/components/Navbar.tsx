@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X, Cross, LogIn, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useChurchLogo } from "@/hooks/useChurchLogo";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -16,13 +17,18 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { logoUrl } = useChurchLogo();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-md border-b border-gold/20">
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <Cross className="text-gold" size={28} />
-          <span className="font-heading font-bold text-lg text-primary-foreground tracking-tight">JDM</span>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Church Logo" className="h-8 w-8 object-contain rounded" />
+          ) : (
+            <Cross className="text-gold" size={28} />
+          )}
+          <span className="font-heading font-bold text-sm text-primary-foreground tracking-tight leading-tight">Jesus Discipleship Ministry</span>
         </Link>
 
         {/* Desktop */}

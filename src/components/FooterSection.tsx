@@ -1,14 +1,21 @@
 import { MapPin, Phone, Mail, Cross } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useChurchLogo } from "@/hooks/useChurchLogo";
 
 const FooterSection = () => {
+  const { logoUrl } = useChurchLogo();
+
   return (
     <footer id="contact" className="py-16 bg-navy-dark border-t border-gold/10">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-10 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Cross className="text-gold" size={24} />
+              {logoUrl ? (
+                <img src={logoUrl} alt="Church Logo" className="h-8 w-8 object-contain rounded" />
+              ) : (
+                <Cross className="text-gold" size={24} />
+              )}
               <span className="font-heading font-bold text-lg text-primary-foreground">Jesus Discipleship Ministry</span>
             </div>
             <p className="text-primary-foreground/60 text-sm leading-relaxed">
@@ -63,13 +70,6 @@ const FooterSection = () => {
           <p className="font-sans text-primary-foreground/40 text-xs">
             © {new Date().getFullYear()} Jesus Discipleship Ministry. All rights reserved.
           </p>
-          <Link
-            to="/admin"
-            className="inline-flex items-center mt-3 px-3 py-1.5 text-xs font-sans text-primary-foreground/70 hover:text-gold transition-colors border border-gold/20 hover:border-gold/40 rounded"
-            title="Admin Page"
-          >
-            Admin Page
-          </Link>
         </div>
       </div>
     </footer>
