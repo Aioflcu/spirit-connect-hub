@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Cross } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { useChurchLogo } from "@/hooks/useChurchLogo";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { logoUrl } = useChurchLogo();
 
   const redirectTo = useMemo(
     () => new URLSearchParams(location.search).get("redirect") || "/",
@@ -38,36 +39,21 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-
-      toast.success("Welcome back!");
-      navigate(redirectTo);
-    } catch (error: any) {
-      toast.error(error.message || "Unable to sign in with Google.");
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-navy-gradient flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Cross className="text-gold" size={32} />
-            <span className="font-heading font-bold text-2xl text-primary-foreground">JDM</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Church Logo" className="h-10 w-10 object-contain rounded" />
+            ) : (
+              <Cross className="text-gold" size={32} />
+            )}
+            <span className="font-heading font-bold text-xl text-primary-foreground">Jesus Discipleship Ministry</span>
           </div>
           <h1 className="font-heading text-3xl font-bold text-primary-foreground">Welcome Back</h1>
           <p className="text-primary-foreground/60 mt-2 font-sans">
-            Sign in to manage hymns, daily Bible, and livestream links.
+            Sign in to your account.
           </p>
         </div>
 
@@ -102,15 +88,6 @@ const LoginPage = () => {
             className="w-full py-3 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full py-3 rounded-lg bg-white text-slate-900 font-sans font-semibold border border-slate-200 hover:bg-slate-100 transition-colors disabled:opacity-50"
-          >
-            {loading ? "Redirecting..." : "Continue with Google"}
           </button>
 
           <p className="text-center text-primary-foreground/60 text-sm font-sans">
