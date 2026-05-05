@@ -1,24 +1,33 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft, Lock } from "lucide-react";
+import { Music, BookOpen, Video, Image, MessageCircle, FileAudio, Trash2, Plus, ArrowLeft, Lock, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGalleryUpload, useMessagesUpload } from "@/hooks/useGallery";
+import { useChurchLogo, useUploadChurchLogo } from "@/hooks/useChurchLogo";
 
 
 const AdminPage = () => {
   const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages">("hymns");
+  const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages" | "settings">("hymns");
   const [showAdminPrompt, setShowAdminPrompt] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
   const adminPasswordEnv = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "jdm1999";
 
   const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
+  const { logoUrl } = useChurchLogo();
+  const { uploadLogo, uploading: logoUploading } = useUploadChurchLogo();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentLogoUrl(logoUrl);
+  }, [logoUrl]);
 
   const [galleryCaption, setGalleryCaption] = useState("");
   const [galleryFile, setGalleryFile] = useState<File | null>(null);
