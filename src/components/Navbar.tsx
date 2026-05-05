@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Cross, LogIn, LogOut } from "lucide-react";
+import { Menu, X, Cross, LogIn, LogOut, UserCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useChurchLogo } from "@/hooks/useChurchLogo";
@@ -49,13 +49,22 @@ const Navbar = () => {
 
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
-            <button
-              onClick={signOut}
-              className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
-            >
-              <LogOut size={16} />
-              Sign Out
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/profile"
+                className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
+              >
+                <UserCircle size={16} />
+                Profile
+              </Link>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </button>
+            </div>
           ) : (
             <Link
               to="/login"
@@ -89,9 +98,14 @@ const Navbar = () => {
             </li>
             <li>
               {user ? (
-                <button onClick={() => { signOut(); setOpen(false); }} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg border border-gold/50 text-primary-foreground">
-                  Sign Out
-                </button>
+                <div className="flex flex-col items-center gap-3">
+                  <Link to="/profile" onClick={() => setOpen(false)} className="font-sans text-base font-medium text-primary-foreground/90 hover:text-gold transition-colors">
+                    Profile
+                  </Link>
+                  <button onClick={() => { signOut(); setOpen(false); }} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg border border-gold/50 text-primary-foreground">
+                    Sign Out
+                  </button>
+                </div>
               ) : (
                 <Link to="/login" onClick={() => setOpen(false)} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg bg-gold text-accent-foreground">
                   Sign In

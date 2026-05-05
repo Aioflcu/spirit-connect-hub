@@ -3,18 +3,22 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Cross } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { useChurchLogo } from "@/hooks/useChurchLogo";
 
 const SignupPage = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { logoUrl } = useChurchLogo();
 
   const redirectTo = useMemo(
-    () => new URLSearchParams(location.search).get("redirect") || "/admin",
+    () => new URLSearchParams(location.search).get("redirect") || "/",
     [location.search]
   );
 
@@ -26,9 +30,16 @@ const SignupPage = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const displayName = `${firstName} ${lastName}`.trim();
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -36,17 +47,26 @@ const SignupPage = () => {
           emailRedirectTo: window.location.origin,
           data: {
             display_name: displayName,
+            phone: phone || undefined,
           },
         },
       });
 
       if (error) throw error;
 
+      // Update profile with phone if provided
+      if (data.user && phone) {
+        await supabase
+          .from("profiles")
+          .update({ phone })
+          .eq("user_id", data.user.id);
+      }
+
       if (data.session) {
         toast.success("Account created successfully!");
         navigate(redirectTo);
       } else {
-        toast.success("Account created. Please check your email to confirm your account, then sign in.");
+        toast.success("Account created! Please check your email to confirm, then sign in.");
         navigate(`/login?redirect=${encodeURIComponent(redirectTo)}`);
       }
     } catch (error: any) {
@@ -56,50 +76,51 @@ const SignupPage = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-
-      toast.success("Account created successfully!");
-      navigate(redirectTo);
-    } catch (error: any) {
-      toast.error(error.message || "Unable to sign up with Google.");
-      setLoading(false);
-    }
-  };
+  const inputClass =
+    "w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans";
 
   return (
-    <div className="min-h-screen bg-navy-gradient flex items-center justify-center px-4">
+    <div className="min-h-screen bg-navy-gradient flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Cross className="text-gold" size={32} />
-            <span className="font-heading font-bold text-2xl text-primary-foreground">JDM</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Church Logo" className="h-10 w-10 object-contain rounded" />
+            ) : (
+              <Cross className="text-gold" size={32} />
+            )}
+            <span className="font-heading font-bold text-xl text-primary-foreground">Jesus Discipleship Ministry</span>
           </div>
           <h1 className="font-heading text-3xl font-bold text-primary-foreground">Create Account</h1>
           <p className="text-primary-foreground/60 mt-2 font-sans">
-            Create your content manager account for the church website.
+            Join the Jesus Discipleship Ministry community.
           </p>
         </div>
 
-        <form onSubmit={handleSignup} className="bg-primary-foreground/5 backdrop-blur-sm border border-gold/20 rounded-xl p-8 space-y-5">
-          <div>
-            <label className="font-sans text-sm text-primary-foreground/80 mb-1 block">Full Name</label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans"
-              placeholder="Ayodele Olusola"
-            />
+        <form onSubmit={handleSignup} className="bg-primary-foreground/5 backdrop-blur-sm border border-gold/20 rounded-xl p-8 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-sans text-sm text-primary-foreground/80 mb-1 block">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className={inputClass}
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label className="font-sans text-sm text-primary-foreground/80 mb-1 block">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className={inputClass}
+                placeholder="Doe"
+              />
+            </div>
           </div>
 
           <div>
@@ -109,8 +130,19 @@ const SignupPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans"
+              className={inputClass}
               placeholder="your@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="font-sans text-sm text-primary-foreground/80 mb-1 block">Phone Number <span className="text-primary-foreground/40">(optional)</span></label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={inputClass}
+              placeholder="+234 xxx xxx xxxx"
             />
           </div>
 
@@ -122,8 +154,21 @@ const SignupPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 rounded-lg bg-primary-foreground/10 border border-gold/20 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:border-gold font-sans"
+              className={inputClass}
               placeholder="At least 6 characters"
+            />
+          </div>
+
+          <div>
+            <label className="font-sans text-sm text-primary-foreground/80 mb-1 block">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              className={inputClass}
+              placeholder="Re-enter your password"
             />
           </div>
 
@@ -133,15 +178,6 @@ const SignupPage = () => {
             className="w-full py-3 rounded-lg bg-gold text-accent-foreground font-sans font-semibold hover:bg-gold-light transition-colors disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Sign Up"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full py-3 rounded-lg bg-white text-slate-900 font-sans font-semibold border border-slate-200 hover:bg-slate-100 transition-colors disabled:opacity-50"
-          >
-            {loading ? "Redirecting..." : "Continue with Google"}
           </button>
 
           <p className="text-center text-primary-foreground/60 text-sm font-sans">

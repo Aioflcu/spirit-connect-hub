@@ -12,6 +12,7 @@ import SignupPage from "./pages/SignupPage.tsx";
 import HymnsPage from "./pages/HymnsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import MessagesPage from "./pages/MessagesPage.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => {
                 <Route path="/hymns" element={<HymnsPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<NotFound />} /> 
               </Routes>
             </AuthProvider>
