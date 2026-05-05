@@ -49,13 +49,22 @@ const Navbar = () => {
 
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
-            <button
-              onClick={signOut}
-              className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
-            >
-              <LogOut size={16} />
-              Sign Out
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/profile"
+                className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
+              >
+                <UserCircle size={16} />
+                Profile
+              </Link>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary-foreground/70 hover:text-gold transition-colors"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </button>
+            </div>
           ) : (
             <Link
               to="/login"
