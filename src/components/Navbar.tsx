@@ -98,9 +98,14 @@ const Navbar = () => {
             </li>
             <li>
               {user ? (
-                <button onClick={() => { signOut(); setOpen(false); }} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg border border-gold/50 text-primary-foreground">
-                  Sign Out
-                </button>
+                <div className="flex flex-col items-center gap-3">
+                  <Link to="/profile" onClick={() => setOpen(false)} className="font-sans text-base font-medium text-primary-foreground/90 hover:text-gold transition-colors">
+                    Profile
+                  </Link>
+                  <button onClick={() => { signOut(); setOpen(false); }} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg border border-gold/50 text-primary-foreground">
+                    Sign Out
+                  </button>
+                </div>
               ) : (
                 <Link to="/login" onClick={() => setOpen(false)} className="font-sans text-sm font-semibold px-6 py-2.5 rounded-lg bg-gold text-accent-foreground">
                   Sign In
