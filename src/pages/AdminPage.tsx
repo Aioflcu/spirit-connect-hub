@@ -17,7 +17,7 @@ const AdminPage = () => {
   const [tab, setTab] = useState<"hymns" | "bible" | "live" | "gallery" | "messages" | "settings">("hymns");
   const [showAdminPrompt, setShowAdminPrompt] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
-  const adminPasswordEnv = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "jdm1999";
+  const adminPasswordEnv = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "1999";
 
   const { uploadImage, uploading: galleryUploading } = useGalleryUpload();
   const { logoUrl } = useChurchLogo();

@@ -1,4 +1,5 @@
 import { BookOpen, Users, Globe, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const beliefs = [
   { icon: BookOpen, title: "The Bible", desc: "The inspired and infallible Word of God, our ultimate authority for faith and practice." },
@@ -7,7 +8,9 @@ const beliefs = [
   { icon: Users, title: "Great Commission", desc: "Called to make disciples of all nations, baptizing and teaching them." },
 ];
 
-const AboutSection = () => (
+const AboutSection = () => {
+  const navigate = useNavigate();
+  return (
   <section id="about" className="py-20 md:py-28 bg-background">
     <div className="container mx-auto px-4">
       {/* Story */}
@@ -15,7 +18,7 @@ const AboutSection = () => (
         <p className="font-sans text-gold text-sm uppercase tracking-[0.25em] mb-3">About Us</p>
         <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mb-6">Our Story</h2>
         <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-4">
-          Founded in <strong className="text-foreground">1999</strong> in the heart of Ibadan, Jesus Discipleship Ministry was birthed out of a burning passion to see lives transformed by the power of the Gospel. From a humble gathering, God has built a vibrant community of believers committed to spiritual growth and Kingdom expansion.
+          Founded in <strong className="text-foreground cursor-pointer" onClick={() => navigate('/admin')}>1999</strong> in the heart of Ibadan, Jesus Discipleship Ministry was birthed out of a burning passion to see lives transformed by the power of the Gospel. From a humble gathering, God has built a vibrant community of believers committed to spiritual growth and Kingdom expansion.
         </p>
         <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
           Today, JDM continues to be a beacon of hope in Molete and beyond, raising disciples who impact their communities for Christ.
@@ -56,6 +59,7 @@ const AboutSection = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default AboutSection;
