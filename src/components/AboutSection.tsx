@@ -30,7 +30,7 @@ const AboutSection = () => {
          <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
            <h3 className="font-heading text-xl font-bold text-foreground mb-3">Our Mission</h3>
            <p className="text-muted-foreground leading-relaxed">
-             WINNING THE LOST, DISCIPLING THE CONVERTS, UNTO SPIRITUAL MATURITY, BUILDING ABLE LEADERS TO DEFEND THE INTEGRITY OF THE SOUND GOSPEL.
+             Winning the lost, discipling the converts unto spiritual maturity, and building able leaders to defend the integrity of the sound Gospel.
            </p>
          </div>
          <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
