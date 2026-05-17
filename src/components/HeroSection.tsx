@@ -20,7 +20,7 @@ const HeroSection = () => (
         <span className="text-gold-gradient">Ministry</span>
       </h1>
       <p className="max-w-2xl mx-auto text-primary-foreground/80 text-base md:text-lg mb-10 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-        Winning the lost for Christ, discipling converts, and raising leaders for the Kingdom — since 1999 in Ibadan.
+        WINNING THE LOST, DISCIPLING THE CONVERTS, UNTO SPIRITUAL MATURITY, BUILDING ABLE LEADERS TO DEFEND THE INTEGRITY OF THE SOUND GOSPEL.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{ animationDelay: "0.45s" }}>
         <a
